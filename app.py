@@ -1,35 +1,28 @@
 import streamlit as st
-import pandas as pd
 import pickle
+import numpy as np
 
-# Load pickle files
+# Load model
 model = pickle.load(open("knn_model.pkl", "rb"))
 scaler = pickle.load(open("scaler.pkl", "rb"))
-features = pickle.load(open("features.pkl", "rb"))
 
-st.set_page_config(page_title="Student Performance Prediction")
+st.title("Student Result Prediction")
 
-st.title("🎓 Student Performance Prediction")
-st.write("Enter feature values and click Predict.")
+# Inputs
+traveltime = st.number_input("Travel Time", 1, 4)
+studytime = st.number_input("Study Time", 1, 4)
+failures = st.number_input("Failures", 0, 3)
+absences = st.number_input("Absences", 0, 100)
+health = st.number_input("Health", 1, 5)
 
-# Take input for all features
-input_data = {}
-
-for feature in features:
-    input_data[feature] = st.number_input(feature, value=0.0)
-
-# Prediction
 if st.button("Predict"):
+    try:
+        input_data = np.array([[traveltime, studytime, failures, absences, health]])
+        input_scaled = scaler.transform(input_data)
+        prediction = model.predict(input_scaled)
 
-    input_df = pd.DataFrame([input_data])
+        st.write("Prediction:", prediction[0])
 
-    # Scale input
-    input_scaled = scaler.transform(input_df)
-
-    # Predict
-    prediction = model.predict(input_scaled)
-
-    if prediction[0] == 1:
-        st.success("✅ Student is likely to PASS")
-    else:
-        st.error("❌ Student is likely to FAIL")
+    except Exception as e:
+        st.error(f"Error: {e}")
+        
